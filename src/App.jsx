@@ -43,13 +43,13 @@ function App() {
     const osc = audioCtx.current.createOscillator()
     const gain = audioCtx.current.createGain()
     osc.type = 'sine'
-    osc.frequency.setValueAtTime(440, audioCtx.current.currentTime)
+    osc.frequency.setValueAtTime(880, audioCtx.current.currentTime)
     osc.connect(gain)
     gain.connect(audioCtx.current.destination)
-    gain.gain.setValueAtTime(0.1, audioCtx.current.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.current.currentTime + 0.1)
+    gain.gain.setValueAtTime(1.0, audioCtx.current.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.current.currentTime + 0.15)
     osc.start()
-    osc.stop(audioCtx.current.currentTime + 0.1)
+    osc.stop(audioCtx.current.currentTime + 0.15)
   }
 
   const toggleMetronome = () => {
