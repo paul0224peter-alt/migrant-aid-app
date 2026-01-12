@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react'
 
 function App() {
+  React.useEffect(() => {
+  // 頁面載入時先「空跑」一次，喚醒語音引擎
+  window.speechSynthesis.getVoices();
+}, []);
   const [guide, setGuide] = useState(null)
   const [currentLang, setCurrentLang] = useState('zh')
   const [isMetronomePlaying, setIsMetronomePlaying] = useState(false)
@@ -21,33 +25,41 @@ function App() {
 
   // 2. 語音功能
 const speakText = () => {
-    if (!guide) return;
-
+    if (!guide || !guide.steps) return;
+    
+    // 1. 強制停止當前所有語音
     window.speechSynthesis.cancel();
 
-    const msg = new SpeechSynthesisUtterance();
-    msg.text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`;
-
-    const voices = window.speechSynthesis.getVoices();
     const langMap = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH' };
     const targetLang = langMap[currentLang] || 'zh-TW';
 
-    const selectedVoice = voices.find(v => v.lang.includes(targetLang));
-    if (selectedVoice) {
-      msg.voice = selectedVoice;
-    }
+    // 2. 組合泰文或其他語系的完整文字
+    const text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`;
     
+    // 3. 建立語音物件
+    const msg = new SpeechSynthesisUtterance(text);
     msg.lang = targetLang;
     msg.volume = 1.0;
-    msg.rate = 0.9;
+    msg.rate = 0.8;
+
+    // 4. 重要：手動尋找系統中的泰文語音引擎
+    const voices = window.speechSynthesis.getVoices();
+    const thaiVoice = voices.find(v => v.lang.includes('th-TH') || v.lang.includes('th_TH'));
+    
+    if (thaiVoice) {
+      msg.voice = thaiVoice;
+    } else if (currentLang === 'th') {
+      // 如果找不到泰文引擎，彈出提醒，這通常是手機沒下載語音包
+      alert("您的裝置尚未安裝泰語語音包，請至系統設定下載。");
+    }
+
+    // 5. 中文特殊校正
+    if (currentLang === 'zh') {
+      msg.text = msg.text.replace(/CPR/gi, "西皮阿").replace(/119/g, "一一九");
+    }
 
     window.speechSynthesis.speak(msg);
   };
-  <button onClick={() => {
-  const m = new SpeechSynthesisUtterance("測試測試");
-  m.lang = "zh-TW";
-  window.speechSynthesis.speak(m);
-}}>測試語音</button>
 
   // 3. CPR 節奏器功能
   const playBeep = () => {
