@@ -27,37 +27,48 @@ function App() {
 const speakText = () => {
     if (!guide || !guide.steps) return;
     
-    // 1. 強制停止當前所有語音
+    // 1. 強制停止當前所有語音，避免重疊
     window.speechSynthesis.cancel();
 
     const langMap = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH' };
     const targetLang = langMap[currentLang] || 'zh-TW';
 
-    // 2. 組合泰文或其他語系的完整文字
-    const text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`;
+    // 2. 組合完整文字
+    let finalText = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`;
     
-    // 3. 建立語音物件
-    const msg = new SpeechSynthesisUtterance(text);
-    msg.lang = targetLang;
-    msg.volume = 1.0;
-    msg.rate = 0.8;
-
-    // 4. 重要：手動尋找系統中的泰文語音引擎
-    const voices = window.speechSynthesis.getVoices();
-    const thaiVoice = voices.find(v => v.lang.includes('th-TH') || v.lang.includes('th_TH'));
-    
-    if (thaiVoice) {
-      msg.voice = thaiVoice;
-    } else if (currentLang === 'th') {
-      // 如果找不到泰文引擎，彈出提醒，這通常是手機沒下載語音包
-      alert("您的裝置尚未安裝泰語語音包，請至系統設定下載。");
-    }
-
-    // 5. 中文特殊校正
+    // 中文特殊發音校正
     if (currentLang === 'zh') {
-      msg.text = msg.text.replace(/CPR/gi, "西皮阿").replace(/119/g, "一一九");
+      finalText = finalText.replace(/CPR/gi, "西皮阿").replace(/119/g, "一一九");
     }
 
+    // 3. 建立語音物件
+    const msg = new SpeechSynthesisUtterance(finalText);
+    msg.lang = targetLang;
+    msg.volume = 1.0; // 確保音量最大
+    msg.rate = 0.8;   // 語速稍慢，確保清晰度
+
+    // 4. 重要：手動尋找系統中的語音引擎（針對泰文與中文優化）
+    const voices = window.speechSynthesis.getVoices();
+    
+    // 尋找對應語系的語音包
+    const targetVoice = voices.find(v => 
+      v.lang.replace('_', '-').includes(targetLang)
+    );
+    
+    if (targetVoice) {
+      msg.voice = targetVoice;
+    } else {
+      // 如果是泰文且找不到，提醒使用者安裝
+      if (currentLang === 'th') {
+        alert("您的裝置尚未安裝泰語語音包，請至系統設定下載。");
+      }
+      // 如果是中文且找不到，在 Console 記錄 Debug 資訊
+      if (currentLang === 'zh') {
+        console.warn("找不到中文(台灣)語音包，將使用系統預設語音");
+      }
+    }
+
+    // 5. 執行朗讀
     window.speechSynthesis.speak(msg);
   };
 
