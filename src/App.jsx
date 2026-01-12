@@ -20,20 +20,34 @@ function App() {
   }
 
   // 2. 語音功能
-  const speakText = () => {
-    if (!guide) return
-    window.speechSynthesis.cancel()
-    let text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`
-    if (currentLang === 'zh') {
-      text = text.replace(/CPR/gi, "西皮阿").replace(/119/g, "一一九")
+const speakText = () => {
+    if (!guide) return;
+
+    window.speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`;
+
+    const voices = window.speechSynthesis.getVoices();
+    const langMap = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH' };
+    const targetLang = langMap[currentLang] || 'zh-TW';
+
+    const selectedVoice = voices.find(v => v.lang.includes(targetLang));
+    if (selectedVoice) {
+      msg.voice = selectedVoice;
     }
-    const msg = new SpeechSynthesisUtterance(text)
-    msg.lang = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH' }[currentLang] || 'zh-TW'
-    msg.volume = 1.0; 
-    msg.rate = 0.8; 
-    msg.pitch = 1.1;
-    window.speechSynthesis.speak(msg)
-  }
+    
+    msg.lang = targetLang;
+    msg.volume = 1.0;
+    msg.rate = 0.9;
+
+    window.speechSynthesis.speak(msg);
+  };
+  <button onClick={() => {
+  const m = new SpeechSynthesisUtterance("測試測試");
+  m.lang = "zh-TW";
+  window.speechSynthesis.speak(m);
+}}>測試語音</button>
 
   // 3. CPR 節奏器功能
   const playBeep = () => {
