@@ -29,6 +29,9 @@ function App() {
     }
     const msg = new SpeechSynthesisUtterance(text)
     msg.lang = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH' }[currentLang] || 'zh-TW'
+    msg.volume = 1.0; 
+    msg.rate = 0.8; 
+    msg.pitch = 1.1;
     window.speechSynthesis.speak(msg)
   }
 
