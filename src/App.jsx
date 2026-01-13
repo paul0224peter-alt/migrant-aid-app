@@ -7,6 +7,15 @@ function App() {
   const metroInterval = useRef(null)
   const audioCtx = useRef(null)
 
+  // 介面文字對照表 (i18n)
+  const uiText = {
+    zh: { title: "🚨 移工母語急救指引", call: "📞 撥打 119 求救 (Taiwan)", metro: "💓 CPR 按壓節奏器", metroStart: "開始", metroStop: "停止", metroDesc: "請跟著「嗶」聲規律按壓胸部" },
+    en: { title: "🚨 Migrant First Aid Guide", call: "📞 Call 119 (Emergency)", metro: "💓 CPR Metronome", metroStart: "Start", metroStop: "Stop", metroDesc: "Follow the 'beep' to press the chest" },
+    vi: { title: "🚨 Hướng dẫn sơ cứu", call: "📞 Gọi 119 (Cấp cứu)", metro: "💓 Máy đếm nhịp CPR", metroStart: "Bắt đầu", metroStop: "Dừng", metroDesc: "Ấn ngực theo tiếng 'bíp'" },
+    id: { title: "🚨 Panduan Pertolongan Pertama", call: "📞 Panggil 119 (Darurat)", metro: "💓 Metronom CPR", metroStart: "Mulai", metroStop: "Berhenti", metroDesc: "Tekan dada sesuai bunyi 'beep'" },
+    th: { title: "🚨 คู่มือปฐมพยาบาล", call: "📞 โทร 119 (ฉุกเฉิน)", metro: "💓 เครื่องให้จังหวะ CPR", metroStart: "เริ่ม", metroStop: "หยุด", metroDesc: "กดหน้าอกตามเสียง 'บี๊บ'" }
+  };
+
   const loadGuide = async (lang) => {
     setCurrentLang(lang)
     try {
@@ -18,13 +27,11 @@ function App() {
     }
   }
 
-const speakText = () => {
+  const speakText = () => {
     if (!guide || !guide.steps) return
     window.speechSynthesis.cancel()
 
-    const langMap = { 
-      'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH', 'en': 'en-US' 
-    }
+    const langMap = { 'zh': 'zh-TW', 'vi': 'vi-VN', 'id': 'id-ID', 'th': 'th-TH', 'en': 'en-US' }
     const targetLang = langMap[currentLang] || 'zh-TW'
 
     let text = `${guide.title}。 ${guide.steps[0].text}。 ${guide.steps[1].text}`
@@ -34,25 +41,18 @@ const speakText = () => {
 
     const msg = new SpeechSynthesisUtterance(text)
     msg.lang = targetLang
-    msg.volume = 1.0;
-    msg.rate = 1.5;
+    msg.volume = 1.0
+    msg.rate = 1.2 // 依照您的要求加快語速
 
-    // --- 修正後的檢查邏輯 ---
-    const getTargetVoice = () => {
-      const voices = window.speechSynthesis.getVoices();
-      return voices.find(v => v.lang.replace('_', '-').includes(targetLang));
-    };
+    const voices = window.speechSynthesis.getVoices()
+    const targetVoice = voices.find(v => v.lang.replace('_', '-').includes(targetLang))
 
-    let targetVoice = getTargetVoice();
-
-    // 如果第一次找不到，且當前是泰文，彈出提醒
+    // 泰文語音包檢查
     if (currentLang === 'th' && !targetVoice) {
-      alert("您的裝置尚未安裝泰語語音包，請至系統設定下載，否則將無法正常朗讀泰文。");
+      alert("您的裝置尚未安裝泰語語音包，請至系統設定下載。")
     }
 
     if (targetVoice) msg.voice = targetVoice
-    // ----------------------
-
     window.speechSynthesis.speak(msg)
   }
 
@@ -86,26 +86,17 @@ const speakText = () => {
 
   return (
     <div style={{ padding: '20px', textAlign: 'center', fontFamily: 'sans-serif', maxWidth: '500px', margin: '0 auto' }}>
-      <h1 style={{ color: '#ff4444', marginBottom: '10px' }}>🚨 移工母語急救指引</h1>
+      <h1 style={{ color: '#ff4444', marginBottom: '10px' }}>{uiText[currentLang].title}</h1>
 
-      {/* --- 新增：緊急撥號按鈕 --- */}
       <div style={{ marginBottom: '25px' }}>
         <a href="tel:119" style={{ 
-          display: 'block',
-          backgroundColor: '#d32f2f', 
-          color: 'white', 
-          padding: '18px', 
-          borderRadius: '12px', 
-          fontSize: '22px', 
-          fontWeight: 'bold', 
-          textDecoration: 'none',
-          boxShadow: '0 6px 12px rgba(211, 47, 47, 0.4)',
-          border: '2px solid #b71c1c'
+          display: 'block', backgroundColor: '#d32f2f', color: 'white', padding: '18px', 
+          borderRadius: '12px', fontSize: '22px', fontWeight: 'bold', textDecoration: 'none',
+          boxShadow: '0 6px 12px rgba(211, 47, 47, 0.4)'
         }}>
-          📞 撥打 119 求救 (Taiwan)
+          {uiText[currentLang].call}
         </a>
       </div>
-      {/* ---------------------- */}
       
       <div style={{ marginBottom: '20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
         {['zh', 'vi', 'id', 'th', 'en'].map(l => (
@@ -124,7 +115,7 @@ const speakText = () => {
       </div>
 
       {guide && (
-        <div style={{ border: '2px solid #ff4444', borderRadius: '15px', padding: '20px', background: 'white', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+        <div style={{ border: '2px solid #ff4444', borderRadius: '15px', padding: '20px', background: 'white', marginBottom: '20px' }}>
           <h2 style={{ marginBottom: '15px' }}>{guide.title}</h2>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', flexWrap: 'wrap' }}>
             <div style={{ width: '150px' }}>
@@ -136,26 +127,26 @@ const speakText = () => {
               <p style={{ fontSize: '14px', marginTop: '8px', fontWeight: 'bold' }}>{guide.steps[1].text}</p>
             </div>
           </div>
-          <button onClick={speakText} style={{ marginTop: '15px', padding: '12px 25px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '30px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}>
+          <button onClick={speakText} style={{ marginTop: '15px', padding: '12px 25px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '30px', fontWeight: 'bold' }}>
             🔊 語音朗讀
           </button>
         </div>
       )}
 
+      {/* 底部節奏器 (支援多國語言) */}
       <div style={{ marginTop: '30px', padding: '20px', borderTop: '2px dashed #ccc' }}>
-        <h3>💓 CPR 按壓節奏器</h3>
+        <h3>{uiText[currentLang].metro}</h3>
         <button 
           onClick={toggleMetronome}
           style={{ 
             width: '110px', height: '110px', borderRadius: '50%', border: 'none',
             backgroundColor: isMetronomePlaying ? '#333' : '#ff4444',
-            color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '18px',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.3)', marginBottom: '10px'
+            color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '18px'
           }}
         >
-          {isMetronomePlaying ? '停止' : '開始'}<br/>(110 BPM)
+          {isMetronomePlaying ? uiText[currentLang].metroStop : uiText[currentLang].metroStart}<br/>(110 BPM)
         </button>
-        <p style={{ color: '#666' }}>請跟著「嗶」聲規律按壓胸部</p>
+        <p style={{ color: '#666', marginTop: '10px' }}>{uiText[currentLang].metroDesc}</p>
       </div>
     </div>
   )
