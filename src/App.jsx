@@ -18,7 +18,7 @@ function App() {
     }
   }
 
-  const speakText = () => {
+const speakText = () => {
     if (!guide || !guide.steps) return
     window.speechSynthesis.cancel()
 
@@ -35,11 +35,23 @@ function App() {
     const msg = new SpeechSynthesisUtterance(text)
     msg.lang = targetLang
     msg.volume = 1.0;
-    msg.rate = 0.8;
+    msg.rate = 1.5;
 
-    const voices = window.speechSynthesis.getVoices()
-    const targetVoice = voices.find(v => v.lang.replace('_', '-').includes(targetLang))
+    // --- 修正後的檢查邏輯 ---
+    const getTargetVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      return voices.find(v => v.lang.replace('_', '-').includes(targetLang));
+    };
+
+    let targetVoice = getTargetVoice();
+
+    // 如果第一次找不到，且當前是泰文，彈出提醒
+    if (currentLang === 'th' && !targetVoice) {
+      alert("您的裝置尚未安裝泰語語音包，請至系統設定下載，否則將無法正常朗讀泰文。");
+    }
+
     if (targetVoice) msg.voice = targetVoice
+    // ----------------------
 
     window.speechSynthesis.speak(msg)
   }
