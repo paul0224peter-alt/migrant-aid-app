@@ -8,7 +8,6 @@ function App() {
   const metroInterval = useRef(null)
   const audioCtx = useRef(null)
 
-  // 1. 介面文字對照表 (i18n)
   const uiText = {
     zh: { title: "🚨 移工母語急救指引", call: "📞 撥打 119 求救 (Taiwan)", locLabel: "📍 我的目前位置：", locRetry: "🔄 重新整理位置", metro: "💓 CPR 按壓節奏器", metroStart: "開始", metroStop: "停止", metroDesc: "請跟著「嗶」聲規律按壓胸部" },
     en: { title: "🚨 Migrant First Aid Guide", call: "📞 Call 119 (Emergency)", locLabel: "📍 My Current Location:", locRetry: "🔄 Refresh Location", metro: "💓 CPR Metronome", metroStart: "Start", metroStop: "Stop", metroDesc: "Follow the 'beep' to press the chest" },
@@ -17,7 +16,6 @@ function App() {
     th: { title: "🚨 คู่มือปฐมพยาบาล", call: "📞 โทร 119 (ฉุกเฉิน)", locLabel: "📍 ตำแหน่งของฉัน:", locRetry: "🔄 รีเฟรชตำแหน่ง", metro: "💓 เครื่องให้จังหวะ CPR", metroStart: "เริ่ม", metroStop: "หยุด", metroDesc: "กดหน้าอกตามเสียง 'บี๊บ'" }
   };
 
-  // 2. 定位功能：獲取經緯度並轉換為地址
   const fetchLocation = () => {
     if (!navigator.geolocation) {
       setLocation("您的瀏覽器不支持定位服務");
@@ -28,12 +26,12 @@ function App() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          // 使用 OpenStreetMap 免費逆向地理編碼 API
+
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=${currentLang}`
           );
           const data = await response.json();
-          // 顯示完整地址，若無地址則顯示經緯度
+
           setLocation(data.display_name || `Lat: ${latitude}, Lon: ${longitude}`);
         } catch (error) {
           setLocation(`經緯度: ${latitude}, ${longitude} (暫時無法轉換地址)`);
@@ -43,14 +41,17 @@ function App() {
         console.error("定位失敗:", error);
         setLocation("無法取得定位，請確保已開啟 GPS 並授權位置權限。");
       },
-      { enableHighAccuracy: true } // 開啟高精準度
+      { 
+        enableHighAccuracy: true , 
+        timeout: 10000,      
+        maximumAge: 0            
+      } 
     );
   };
 
-  // 3. 在組件載入時立即要求定位權限
+
   useEffect(() => {
     fetchLocation();
-    // 預載入中文指南作為首頁內容
     loadGuide('zh');
   }, []);
 
@@ -60,7 +61,6 @@ function App() {
       const response = await fetch(`https://migrant-first-aid.onrender.com/guide/${lang}`);
       const data = await response.json();
       setGuide(data);
-      // 切換語言時重新更新地址語言
       fetchLocation();
     } catch (error) {
       console.error("載入指南失敗:", error);
@@ -82,7 +82,7 @@ function App() {
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = targetLang;
     msg.volume = 1.0;
-    msg.rate = 1.2; // 加快語速
+    msg.rate = 1.2;
 
     const voices = window.speechSynthesis.getVoices();
     const targetVoice = voices.find(v => v.lang.replace('_', '-').includes(targetLang));
