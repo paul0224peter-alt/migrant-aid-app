@@ -158,7 +158,23 @@ function App() {
         <p style={{ color: '#666' }}>請跟著「嗶」聲規律按壓胸部</p>
       </div>
     </div>
-  )
-}
+)}
+        {/* 撥打緊急電話按鈕 */}
+    <div style={{ marginTop: '20px' }}>
+      <a href="tel:119" style={{ 
+        display: 'inline-block',
+        padding: '15px 30px', 
+        backgroundColor: '#d32f2f', 
+        color: 'white', 
+        borderRadius: '50px', 
+        textDecoration: 'none', 
+        fontSize: '20px', 
+        fontWeight: 'bold',
+        boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+      }}>
+        📞 撥打 119 求救
+    </a>
+</div>
+
 
 export default App
